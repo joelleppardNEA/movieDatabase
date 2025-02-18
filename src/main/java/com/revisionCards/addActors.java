@@ -35,7 +35,7 @@ public class addActors {
                 query += ",";
             }
         }
-        query += "] AS Actor MERGE (a:Actor {ID: Actor.ID}) SET a.name = Actor.name, a.gender = Actor.gender, a.popularity = Actor.popularity MERGE (a)-[:ACTED_IN]->(m)";
+        query += "] AS Actor MERGE (a:Actor {name: Actor.name}) ON CREATE SET a.ID = Actor.ID, a.gender = Actor.gender, a.popularity = Actor.popularity MERGE (a)-[:ACTED_IN]->(m)";
         batchQueries.add(query);
     }
 

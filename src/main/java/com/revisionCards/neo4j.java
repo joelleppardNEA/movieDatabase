@@ -64,6 +64,7 @@ public class neo4j {
         List<Future> futures = new ArrayList<>();
 
         ArrayList<Integer> movieIDs = new ArrayList<>();
+        //star wars movie ids from TMDB website and API
         movieIDs.add(11);
         movieIDs.add(140607);
         movieIDs.add(181808);
