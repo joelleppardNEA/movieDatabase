@@ -44,16 +44,15 @@ public class neo4j {
         System.out.println(number);
         TmdbMovies tmdbMovies = tmdbApi.getMovies();
         TmdbPeople tmdbPeople = tmdbApi.getPeople();
-            // Test connection
-            try (Session session = driver.session()) {
-                String testQuery = "RETURN 'Connected to Neo4j' AS message";
-                Result result = session.run(testQuery);
-                System.out.println(result.single().get("message").asString());
-            } catch (Exception e) {
-                System.out.println("Failed to connect to Neo4j: " + e.getMessage());
-            }
         ExecutorService executorService = Executors.newFixedThreadPool(8);
         List<Future> futures = new ArrayList<>();
+
+        addFromGenre add = new addFromGenre();
+        try {
+            add.addFromGenre(tmdbApi);
+        } catch (TmdbException e) {
+            throw new RuntimeException(e);
+        }
 
         //star wars movie ids from TMDB website and API
 //        movieIDs.add(11);
@@ -62,12 +61,11 @@ public class neo4j {
 //        movieIDs.add(181812);
 //        movieIDs.add(1893);
 //        movieIDs.add(1894);
-
         for (int i = number; i < number+numberOfMoviesToBeAdded; i++) {
             int finalI = i;
 
                 futures.add(executorService.submit(() -> {
-                    process(tmdbMovies, tmdbPeople, finalI);
+                //    processDefault(tmdbMovies, tmdbPeople, finalI);
                 }));
         }
 
@@ -86,10 +84,9 @@ public class neo4j {
         bufferedWriter.close();
     }
 
-    private void process(TmdbMovies tmdbMovies, TmdbPeople tmdbPeople, int finalI) {
+    private void processDefault(TmdbMovies tmdbMovies, TmdbPeople tmdbPeople, int finalI) {
 
         try {
-
             addActors addActors = new addActors();
             addCollection addCollection = new addCollection();
             addDirector addDirector = new addDirector();
