@@ -1,4 +1,4 @@
-package com.revisionCards;
+package com.jLepps;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

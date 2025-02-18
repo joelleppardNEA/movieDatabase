@@ -1,4 +1,4 @@
-package com.revisionCards;
+package com.jLepps;
 
 import info.movito.themoviedbapi.TmdbMovies;
 import info.movito.themoviedbapi.model.core.ProductionCompany;

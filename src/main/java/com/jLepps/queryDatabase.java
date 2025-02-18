@@ -1,4 +1,4 @@
-package com.revisionCards;
+package com.jLepps;
 
 import info.movito.themoviedbapi.tools.TmdbException;
 import org.neo4j.driver.Driver;

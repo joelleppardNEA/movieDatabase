@@ -1,10 +1,8 @@
-package com.revisionCards;
+package com.jLepps;
 
 import info.movito.themoviedbapi.model.movies.Credits;
 import info.movito.themoviedbapi.model.movies.MovieDb;
-import info.movito.themoviedbapi.tools.TmdbException;
 
-import java.io.IOException;
 import java.util.List;
 
 public class addDirector {

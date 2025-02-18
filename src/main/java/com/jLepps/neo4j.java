@@ -1,20 +1,14 @@
-package com.revisionCards;
+package com.jLepps;
 
 import info.movito.themoviedbapi.TmdbApi;
 import info.movito.themoviedbapi.TmdbDiscover;
 import info.movito.themoviedbapi.TmdbMovies;
 import info.movito.themoviedbapi.TmdbPeople;
-import info.movito.themoviedbapi.model.core.MovieResultsPage;
-import info.movito.themoviedbapi.model.core.ProductionCompany;
-import info.movito.themoviedbapi.model.core.ProductionCountry;
 import info.movito.themoviedbapi.model.core.responses.TmdbResponseException;
 import info.movito.themoviedbapi.model.movies.Credits;
 import info.movito.themoviedbapi.model.movies.MovieDb;
-import info.movito.themoviedbapi.model.people.Gender;
 import info.movito.themoviedbapi.tools.TmdbException;
 import org.neo4j.driver.*;
-import org.neo4j.driver.Record;
-import org.neo4j.driver.exceptions.TransientException;
 
 import java.io.*;
 import java.util.*;
@@ -23,8 +17,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class neo4j {
 
@@ -48,7 +40,7 @@ public class neo4j {
         String stringNumber = bufferedReader.readLine();
         int number = Integer.parseInt(stringNumber);
         bufferedReader.close();
-        int numberOfMoviesToBeAdded = 2;
+        int numberOfMoviesToBeAdded = 200;
         System.out.println(number);
         TmdbMovies tmdbMovies = tmdbApi.getMovies();
         TmdbPeople tmdbPeople = tmdbApi.getPeople();
@@ -63,20 +55,19 @@ public class neo4j {
         ExecutorService executorService = Executors.newFixedThreadPool(8);
         List<Future> futures = new ArrayList<>();
 
-        ArrayList<Integer> movieIDs = new ArrayList<>();
         //star wars movie ids from TMDB website and API
-        movieIDs.add(11);
-        movieIDs.add(140607);
-        movieIDs.add(181808);
-        movieIDs.add(181812);
-        movieIDs.add(1893);
-        movieIDs.add(1894);
+//        movieIDs.add(11);
+//        movieIDs.add(140607);
+//        movieIDs.add(181808);
+//        movieIDs.add(181812);
+//        movieIDs.add(1893);
+//        movieIDs.add(1894);
 
-        for (int i = 0; i < movieIDs.size(); i++) {
+        for (int i = number; i < number+numberOfMoviesToBeAdded; i++) {
             int finalI = i;
 
                 futures.add(executorService.submit(() -> {
-                    process(tmdbMovies, tmdbPeople, finalI,movieIDs);
+                    process(tmdbMovies, tmdbPeople, finalI);
                 }));
         }
 
@@ -95,11 +86,9 @@ public class neo4j {
         bufferedWriter.close();
     }
 
-    private void process(TmdbMovies tmdbMovies, TmdbPeople tmdbPeople, int finalI,ArrayList<Integer> movieIDs) {
+    private void process(TmdbMovies tmdbMovies, TmdbPeople tmdbPeople, int finalI) {
 
         try {
-          int temp = finalI;
-          finalI = movieIDs.get(finalI);
 
             addActors addActors = new addActors();
             addCollection addCollection = new addCollection();
@@ -128,7 +117,6 @@ public class neo4j {
             System.out.println(localBatchQueries);
             queryDatabase queryDatabase = new queryDatabase();
             queryDatabase.executeBatchWithRetry(localBatchQueries,driver);
-            finalI = temp;
         } catch (TmdbResponseException e){
             System.out.println("parsed");
         }
