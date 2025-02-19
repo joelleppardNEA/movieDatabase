@@ -28,6 +28,7 @@ public class queryDatabase {
         while (retryAttempts > 0) {
             try (Session session = driver.session()) {
                 try (Transaction transaction = session.beginTransaction()) {
+
                     for (String query : batchQueries) {
                         transaction.run(query);
                     }

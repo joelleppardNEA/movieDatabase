@@ -49,7 +49,7 @@ public class neo4j {
 
         addFromGenre add = new addFromGenre();
         try {
-            add.addFromGenre(tmdbApi);
+            add.addFromGenre(tmdbApi,driver);
         } catch (TmdbException e) {
             throw new RuntimeException(e);
         }
