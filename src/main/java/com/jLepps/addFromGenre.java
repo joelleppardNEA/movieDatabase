@@ -56,7 +56,7 @@ public class addFromGenre {
 
         movies.clear();
         TmdbMovies tmdbMovies = new TmdbMovies(tmdbApi);
-        int n = 2;
+        int n = 20;
         long before = System.currentTimeMillis();
         for (int i = 1; i < n+1; i++) {
             MovieResultsPage tempMovieStack = tmdbApi.getDiscover().getMovie(builder.page(i));

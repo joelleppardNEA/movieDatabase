@@ -24,7 +24,7 @@ public class queryDatabase {
 
     public void executeBatchWithRetry(List<String> batchQueries, Driver driver) {
         if (batchQueries.isEmpty()) return;
-        int retryAttempts = 5;
+        int retryAttempts = 15;
         while (retryAttempts > 0) {
             try (Session session = driver.session()) {
                 try (Transaction transaction = session.beginTransaction()) {
@@ -37,7 +37,7 @@ public class queryDatabase {
                 }
             } catch (TransientException e) {
                 retryAttempts--;
-                System.out.println("Transient lock issue, retrying... Remaining attempts: " + retryAttempts);
+                System.out.println("Transient lock issue, retrying: " + retryAttempts);
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException ie) {
