@@ -29,7 +29,7 @@ public class addFromGenre {
     addProductionCompany addProductionCompany = new addProductionCompany();
     addProductionCountries addProductionCountries = new addProductionCountries();
     queryDatabase queryDatabase = new queryDatabase();
-
+    stringFixer stringFixer = new stringFixer();
     public void addFromGenre(TmdbApi tmdbApi, Driver driver) throws TmdbException {
         List<Genre> list;
         try {
@@ -45,6 +45,7 @@ public class addFromGenre {
         System.out.println("here is the list of genres to pick from,");
         System.out.println("please enter the ID next to the name");
         System.out.println("---------------");
+
         Scanner scan = new Scanner(System.in);
         List<Integer> genreInt = new ArrayList<>();
         genreInt.add(scan.nextInt());
@@ -55,14 +56,16 @@ public class addFromGenre {
         MovieResultsPage moviesStack = tmdbApi.getDiscover().getMovie(builder.page(1));
         List<MovieDb> movies = new ArrayList<>();
 
-        movies.clear();
+        TmdbPeople people = tmdbApi.getPeople();
         TmdbMovies tmdbMovies = new TmdbMovies(tmdbApi);
+
+
         int n = 400;
         long before = System.currentTimeMillis();
         for (int i = 1; i < n + 1; i++) {
             MovieResultsPage tempMovieStack = tmdbApi.getDiscover().getMovie(builder.page(i));
             tempMovieStack.getResults().parallelStream().forEach(movie -> {
-                process(tmdbMovies, tmdbApi, driver, movie.getId());
+                process(tmdbMovies, tmdbApi, driver, movie.getId(),people);
             });
             try {
                 Thread.sleep(1000);
@@ -74,31 +77,24 @@ public class addFromGenre {
         System.out.println("--");
         System.out.println(after - before);
         System.out.println("--");
-
-        System.out.println(movies.size());
-        System.out.println(moviesStack.getTotalResults());
     }
 
-    private void process(TmdbMovies tmdbMovies, TmdbApi tmdbApi, Driver driver, int ID) {
+    private void process(TmdbMovies tmdbMovies, TmdbApi tmdbApi, Driver driver, int ID, TmdbPeople people) {
 
         try {
-            Credits credits;
-            MovieDb movie;
-            TmdbPeople people;
+            Credits credits = tmdbMovies.getCredits(ID, "en-us");
+            MovieDb movie = tmdbMovies.getDetails(ID, "en-us");
+            String title = stringFixer.fixString(movie.getTitle());
 
             List<String> localBatchQueries = new ArrayList<>();
-            credits = tmdbMovies.getCredits(ID, "en-us");
-            movie = tmdbMovies.getDetails(ID, "en-us");
-            people = tmdbApi.getPeople();
-
-            addMovie.addMovies(movie, localBatchQueries);
-            addActors.addActors(people, credits, movie, localBatchQueries);
-            addCollection.addCollection(movie, localBatchQueries);
-            addDirector.addDirectors(credits, movie, localBatchQueries);
-            addGenres.addGenres(movie, localBatchQueries);
-            addLanguage.addLanguages(movie, localBatchQueries);
-            addProductionCompany.addProductionCompanies(tmdbMovies, ID, movie, localBatchQueries);
-            addProductionCountries.addCountries(tmdbMovies, ID, movie, localBatchQueries);
+            addMovie.addMovies(movie, localBatchQueries,title);
+            addActors.addActors(people, credits,localBatchQueries,title);
+            addCollection.addCollection(movie, localBatchQueries,title);
+            addDirector.addDirectors(credits, localBatchQueries,title);
+            addGenres.addGenres(movie, localBatchQueries,title);
+            addLanguage.addLanguages(movie, localBatchQueries,title);
+            addProductionCompany.addProductionCompanies(tmdbMovies, ID, localBatchQueries,title);
+            addProductionCountries.addCountries(tmdbMovies, ID, localBatchQueries,title);
             System.out.println(localBatchQueries);
             queryDatabase.executeBatchWithRetry(localBatchQueries, driver);
         } catch (TmdbResponseException e) {

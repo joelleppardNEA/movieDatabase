@@ -10,26 +10,23 @@ import java.io.IOException;
 import java.util.List;
 
 public class addActors {
-    public void addActors(TmdbPeople tmdbPeople, Credits credits, MovieDb movie, List batchQueries) throws IOException, TmdbException {
+    public void addActors(TmdbPeople tmdbPeople, Credits credits, List batchQueries,String title) throws IOException, TmdbException {
        stringFixer stringFixer = new stringFixer();
         var cast = credits.getCast();
         int feturedActorCount = 10;
-        String query = "MATCH (m:Movie {title: '"+stringFixer.fixString(movie.getTitle())+"'}) WITH m UNWIND [";
+        String query = "MATCH (m:Movie {title: '"+title+"'}) WITH m UNWIND [";
         int added = Math.min(feturedActorCount,cast.size());
         for (int i = 0; i < added; i++) {
             var actor = cast.get(i);
             var ID= actor.getId();
             var name = actor.getName();
             name = stringFixer.fixString(name);
-            Gender gender;
+            String gender;
             Double popularity;
-            try {
-                gender = tmdbPeople.getDetails(ID, "en-us").getGender();
-                popularity = tmdbPeople.getDetails(ID, "en-us").getPopularity();
-            } catch (TmdbException e) {
-                throw new RuntimeException(e);
-            }
-            query += "{ID:"+ID+", name: '"+name+"', gender: '"+gender.name()+"', popularity: "+popularity+"}";
+            var temp = tmdbPeople.getDetails(ID, "en-us");
+            gender = temp.getGender().name();
+            popularity = temp.getPopularity();
+            query += "{ID:"+ID+", name: '"+name+"', gender: '"+gender+"', popularity: "+popularity+"}";
         if (i!=added-1){
                 query += ",";
             }
