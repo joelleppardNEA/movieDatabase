@@ -11,6 +11,7 @@ import info.movito.themoviedbapi.tools.TmdbException;
 import org.neo4j.driver.*;
 
 import java.io.*;
+import java.net.http.HttpClient;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -24,14 +25,13 @@ public class neo4j {
     private static final String USER = "neo4j";
     private static final String PASSWORD = "localhost";
     private static Driver driver;
-    Queue<String> BatchQueries = new ConcurrentLinkedQueue<>();
+    HttpClient httpClient = HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)  // Force HTTP/1.1
+            .build();
     static TmdbApi tmdbApi = new TmdbApi("eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjYWM3OGM1ZDc4MWFiNjVmY2RhZTg3Y2YwYjBlNmQ2YSIsIm5iZiI6MTczOTYyNTI5MS4yODYsInN1YiI6IjY3YjA5MzRiZjJlMDg0YWY3ZjM2MjYxZSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.9mjuwxrJVkuMy72Vk0bE2Wibv6auhfPhLnRyWwz_VAQ");
-    static TmdbDiscover tmdbDiscover = tmdbApi.getDiscover();
-    private static TmdbMovies tmdbMovies;
     public void connect(){
-
         driver = GraphDatabase.driver(URI, AuthTokens.basic(USER,PASSWORD));
-       // outputDB();
+        // outputDB();
     }
 
     public void addNodes() throws IOException {
@@ -82,46 +82,6 @@ public class neo4j {
         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("numberUpTo.txt"));
         bufferedWriter.write(String.valueOf(writeNumber));
         bufferedWriter.close();
-    }
-
-    private void processDefault(TmdbMovies tmdbMovies, TmdbPeople tmdbPeople, int finalI) {
-
-        try {
-            addActors addActors = new addActors();
-            addCollection addCollection = new addCollection();
-            addDirector addDirector = new addDirector();
-            addGenres addGenres = new addGenres();
-            addLanguage addLanguage = new addLanguage();
-            addMovie addMovie = new addMovie();
-            addProductionCompany addProductionCompany = new addProductionCompany();
-            addProductionCountries addProductionCountries = new addProductionCountries();
-
-            List<String> localBatchQueries = new ArrayList<>();
-            Credits credits = null;
-            MovieDb movie = null;
-
-            credits = tmdbMovies.getCredits(finalI,"en-us");
-            movie = tmdbMovies.getDetails(finalI, "en-us");
-
-            addMovie.addMovies(movie,localBatchQueries);
-            addActors.addActors(tmdbPeople,credits,movie,localBatchQueries);
-            addCollection.addCollection(movie,localBatchQueries);
-            addDirector.addDirectors(credits, movie, localBatchQueries);
-            addGenres.addGenres(movie,localBatchQueries);
-            addLanguage.addLanguages(movie,localBatchQueries);
-            addProductionCompany.addProductionCompanies(tmdbMovies,finalI,movie,localBatchQueries);
-            addProductionCountries.addCountries(tmdbMovies,finalI,movie,localBatchQueries);
-            System.out.println(localBatchQueries);
-            queryDatabase queryDatabase = new queryDatabase();
-            queryDatabase.executeBatchWithRetry(localBatchQueries,driver);
-        } catch (TmdbResponseException e){
-            System.out.println("parsed");
-        }
-        catch (TmdbException e) {
-            System.out.println("parsed");
-        }catch (IOException e) {
-            System.out.println("random error idek: " + e.getMessage());
-        }
     }
 
     public void closeDriver(){

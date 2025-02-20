@@ -1,11 +1,9 @@
 package com.jLepps;
 
 import info.movito.themoviedbapi.TmdbApi;
-import info.movito.themoviedbapi.TmdbDiscover;
 import info.movito.themoviedbapi.TmdbMovies;
 import info.movito.themoviedbapi.TmdbPeople;
 import info.movito.themoviedbapi.model.core.Genre;
-import info.movito.themoviedbapi.model.core.Movie;
 import info.movito.themoviedbapi.model.core.MovieResultsPage;
 import info.movito.themoviedbapi.model.core.responses.TmdbResponseException;
 import info.movito.themoviedbapi.model.movies.Credits;
@@ -13,13 +11,13 @@ import info.movito.themoviedbapi.model.movies.MovieDb;
 import info.movito.themoviedbapi.tools.TmdbException;
 import info.movito.themoviedbapi.tools.builders.discover.DiscoverMovieParamBuilder;
 import info.movito.themoviedbapi.tools.sortby.DiscoverMovieSortBy;
-import info.movito.themoviedbapi.tools.sortby.SortBy;
 import org.neo4j.driver.Driver;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 public class addFromGenre {
     addActors addActors = new addActors();
@@ -61,12 +59,16 @@ public class addFromGenre {
         TmdbMovies tmdbMovies = new TmdbMovies(tmdbApi);
         int n = 400;
         long before = System.currentTimeMillis();
-        for (int i = 1; i < n+1; i++) {
+        for (int i = 1; i < n + 1; i++) {
             MovieResultsPage tempMovieStack = tmdbApi.getDiscover().getMovie(builder.page(i));
-          // batchAddByPage(tempMovieStack,tmdbMovies,tmdbApi,driver);
-                tempMovieStack.getResults().parallelStream().forEach(movie -> {
-                    process(tempMovieStack,tmdbMovies,tmdbApi,driver,movie.getId());
-                });
+            tempMovieStack.getResults().parallelStream().forEach(movie -> {
+                process(tmdbMovies, tmdbApi, driver, movie.getId());
+            });
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                System.out.println("this thing fucked up somewhere");
+            }
         }
         long after = System.currentTimeMillis();
         System.out.println("--");
@@ -77,41 +79,7 @@ public class addFromGenre {
         System.out.println(moviesStack.getTotalResults());
     }
 
-
-    private void batchAddByPage(MovieResultsPage tempMovieStack, TmdbMovies tmdbMovies,TmdbApi tmdbApi,Driver driver) {
-        Credits credits;
-        MovieDb movie;
-        TmdbPeople people;
-        for (int i = 0; i < tempMovieStack.getResults().size(); i++) {
-            int ID = tempMovieStack.getResults().get(i).getId();
-            try {
-
-                List<String> localBatchQueries = new ArrayList<>();
-                credits = tmdbMovies.getCredits(ID,"en-us");
-                movie = tmdbMovies.getDetails(ID, "en-us");
-                people = tmdbApi.getPeople();
-
-                addMovie.addMovies(movie,localBatchQueries);
-                addActors.addActors(people,credits,movie,localBatchQueries);
-                addCollection.addCollection(movie,localBatchQueries);
-                addDirector.addDirectors(credits, movie, localBatchQueries);
-                addGenres.addGenres(movie,localBatchQueries);
-                addLanguage.addLanguages(movie,localBatchQueries);
-                addProductionCompany.addProductionCompanies(tmdbMovies,ID,movie,localBatchQueries);
-                addProductionCountries.addCountries(tmdbMovies,ID,movie,localBatchQueries);
-                System.out.println(localBatchQueries);
-                queryDatabase.executeBatchWithRetry(localBatchQueries,driver);
-            } catch (TmdbResponseException e){
-                System.out.println("parsed");
-            } catch (TmdbException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    private void process(MovieResultsPage tempMovieStack, TmdbMovies tmdbMovies,TmdbApi tmdbApi,Driver driver, int ID) {
+    private void process(TmdbMovies tmdbMovies, TmdbApi tmdbApi, Driver driver, int ID) {
 
         try {
             Credits credits;
@@ -119,21 +87,21 @@ public class addFromGenre {
             TmdbPeople people;
 
             List<String> localBatchQueries = new ArrayList<>();
-            credits = tmdbMovies.getCredits(ID,"en-us");
+            credits = tmdbMovies.getCredits(ID, "en-us");
             movie = tmdbMovies.getDetails(ID, "en-us");
             people = tmdbApi.getPeople();
 
-            addMovie.addMovies(movie,localBatchQueries);
-            addActors.addActors(people,credits,movie,localBatchQueries);
-            addCollection.addCollection(movie,localBatchQueries);
+            addMovie.addMovies(movie, localBatchQueries);
+            addActors.addActors(people, credits, movie, localBatchQueries);
+            addCollection.addCollection(movie, localBatchQueries);
             addDirector.addDirectors(credits, movie, localBatchQueries);
-            addGenres.addGenres(movie,localBatchQueries);
-            addLanguage.addLanguages(movie,localBatchQueries);
-            addProductionCompany.addProductionCompanies(tmdbMovies,ID,movie,localBatchQueries);
-            addProductionCountries.addCountries(tmdbMovies,ID,movie,localBatchQueries);
+            addGenres.addGenres(movie, localBatchQueries);
+            addLanguage.addLanguages(movie, localBatchQueries);
+            addProductionCompany.addProductionCompanies(tmdbMovies, ID, movie, localBatchQueries);
+            addProductionCountries.addCountries(tmdbMovies, ID, movie, localBatchQueries);
             System.out.println(localBatchQueries);
-            queryDatabase.executeBatchWithRetry(localBatchQueries,driver);
-        } catch (TmdbResponseException e){
+            queryDatabase.executeBatchWithRetry(localBatchQueries, driver);
+        } catch (TmdbResponseException e) {
             System.out.println("parsed");
         } catch (TmdbException e) {
             throw new RuntimeException(e);
@@ -141,9 +109,9 @@ public class addFromGenre {
             throw new RuntimeException(e);
         }
     }
-    ///TODO
-    /// - get list of movie IDs in the genre picked
-    /// - call the process class to add all of the new movies
-
-
 }
+    ///TODO
+   ///catch the error of acessing api too much (100 times in 10 seconds)
+/// find way of catching the 429 GO AWAY error and wait 10 seconds to reset it and try again
+
+
