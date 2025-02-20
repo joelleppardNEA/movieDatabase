@@ -12,6 +12,8 @@ import info.movito.themoviedbapi.model.movies.Credits;
 import info.movito.themoviedbapi.model.movies.MovieDb;
 import info.movito.themoviedbapi.tools.TmdbException;
 import info.movito.themoviedbapi.tools.builders.discover.DiscoverMovieParamBuilder;
+import info.movito.themoviedbapi.tools.sortby.DiscoverMovieSortBy;
+import info.movito.themoviedbapi.tools.sortby.SortBy;
 import org.neo4j.driver.Driver;
 
 import java.io.IOException;
@@ -50,13 +52,14 @@ public class addFromGenre {
         genreInt.add(scan.nextInt());
         DiscoverMovieParamBuilder builder = new DiscoverMovieParamBuilder();
         builder.withGenres(genreInt, true);
-
+        DiscoverMovieSortBy discoverMovieSortBy = DiscoverMovieSortBy.POPULARITY_DESC;
+        builder.sortBy(discoverMovieSortBy);
         MovieResultsPage moviesStack = tmdbApi.getDiscover().getMovie(builder.page(1));
         List<MovieDb> movies = new ArrayList<>();
 
         movies.clear();
         TmdbMovies tmdbMovies = new TmdbMovies(tmdbApi);
-        int n = 20;
+        int n = 400;
         long before = System.currentTimeMillis();
         for (int i = 1; i < n+1; i++) {
             MovieResultsPage tempMovieStack = tmdbApi.getDiscover().getMovie(builder.page(i));

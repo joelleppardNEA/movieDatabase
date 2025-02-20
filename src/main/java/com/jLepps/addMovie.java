@@ -9,8 +9,9 @@ public class addMovie {
     public void addMovies(MovieDb movie, List<String> batchQueries) throws IOException {
         stringFixer stringFixer = new stringFixer();
         var title = stringFixer.fixString(movie.getTitle());
+        var popularity = movie.getPopularity();
         System.out.println(title);
         var releaseDate = movie.getReleaseDate();
-        batchQueries.add("MERGE (:Movie {title: '" + title + "', releaseDate: '" + releaseDate + "'})");
+        batchQueries.add("MERGE (:Movie {title: '" + title + "', releaseDate: '" + releaseDate + "', popularity: "+popularity+"})");
     }
 }
